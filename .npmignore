@@ -13,3 +13,6 @@ tsconfig.json
 tsfmt.json
 tslint.json
 test
+.idea/
+yarn.lock
+src

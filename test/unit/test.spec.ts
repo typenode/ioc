@@ -4,8 +4,7 @@ import * as assert from 'assert';
 import * as chai from 'chai';
 import 'mocha';
 import "reflect-metadata";
-import { ContainerConfig } from "../../src/container-config";
-import { AutoWired, Container, Inject, Provided, Provides, Scope, Scoped, Singleton } from "../../src/typescript-ioc";
+import { AutoWired, Container, Inject, Provided, Provides, Scope, Scoped, Singleton } from "../../src";
 
 const expect = chai.expect;
 
@@ -278,7 +277,7 @@ describe("Default Implementation class", () => {
 	}
 
 	it("should inform Container that it is the implementation for its base type", () => {
-		const instance: ImplementationClass = Container.get(BaseClass);
+		const instance: ImplementationClass = <ImplementationClass>Container.get(BaseClass);
 		const test = instance['testProp'];
 		expect(test).to.exist;
 	});
@@ -488,18 +487,4 @@ describe("The IoC Container Config.to()", () => {
 		instance = Container.get(FirstClass);
 		expect(instance.getValue()).to.equal('third');
 	});
-});
-
-describe("The IoC Container", () => {
-
-	it("should find classes in different files", () => {
-		ContainerConfig.addSource('data/*', 'test');
-
-		const Worker = require('../data/classes').Worker;
-		const instance = new Worker();
-		expect(instance).to.exist;
-		expect(instance.type).to.exist;
-		instance.work();
-	});
-
 });
