@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 export * from './decorators/AutoWired';
 export * from './decorators/Inject';
 export * from './decorators/Provided';
