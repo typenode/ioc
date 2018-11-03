@@ -1,4 +1,4 @@
-import { Inject } from '../../src/typescript-ioc';
+import { Inject } from '../../src';
 import IBaseType from './parent-type';
 
 export class Worker {
