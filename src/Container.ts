@@ -3,14 +3,19 @@
  * You can also use de decorators [[AutoWired]], [[Scoped]], [[Singleton]], [[Provided]] and [[Provides]]
  * to configure the dependency directly on the class.
  */
-import {IoCContainer}            from "./IoCContainer";
-import {AutoWired}               from "./decorators/AutoWired";
-import {Class, Config, Provider} from "./types";
-import {ConfigImpl}              from "./Config";
-import {Scope}                   from "./Scope";
-
+import {IoCContainer}                     from "./IoCContainer";
+import {AutoWired}                        from "./decorators/AutoWired";
+import {Class, Config, Handler, Provider} from "./types";
+import {ConfigImpl}                       from "./Config";
+import {Scope}                            from "./Scope";
+import {KEY}                              from "./constants";
 
 export class Container {
+
+    private static snapshots: { providers: Map<Function, Provider>; scopes: Map<Function, Scope> } = {
+        providers: new Map(),
+        scopes: new Map(),
+    };
 
     /**
      * Add a dependency to the Container. If this type is already present, just return its associated
@@ -39,7 +44,7 @@ export class Container {
      * @param source The dependency type to resolve
      * @return an object resolved for the given source type;
      */
-    public static get<T>(source: Class<T>):T {
+    public static get<T>(source: Class<T>): T {
         return IoCContainer.get(source);
     }
 
@@ -80,12 +85,26 @@ export class Container {
         }
     }
 
-    /**
-     * Internal storage for snapshots
-     * @type {providers: Map<Function, Provider>; scopes: Map<Function, Scope>}
-     */
-    private static snapshots: { providers: Map<Function, Provider>; scopes: Map<Function, Scope> } = {
-        providers: new Map(),
-        scopes: new Map(),
-    };
+    public static defineHandler(handler: Handler) {
+        if (typeof handler.index === 'number' && !handler.propertyName) {
+            const config: ConfigImpl = IoCContainer.bind(handler.target) as ConfigImpl;
+            config.parameters = config.parameters || [];
+            config.parameters.unshift(handler.value);
+        } else {
+            Object.defineProperty(handler.target, handler.propertyName, {
+                enumerable: true,
+                get: function () {
+                    if (Reflect.hasMetadata(KEY, this, handler.propertyName)) {
+                        return Reflect.getMetadata(KEY, this, handler.propertyName);
+                    }
+                    const value = handler.value();
+                    Reflect.defineMetadata(KEY, value, this, handler.propertyName);
+                    return value;
+                },
+                set: function (newValue) {
+                    Reflect.defineMetadata(KEY, newValue, this, handler.propertyName);
+                }
+            });
+        }
+    }
 }

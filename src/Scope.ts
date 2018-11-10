@@ -1,5 +1,6 @@
 import {Class, Provider} from "./types";
 import {InjectorHanlder} from "./utils/InjectorHanlder";
+import {SINGLETON}       from "./constants";
 
 export abstract class Scope {
     /**
@@ -52,9 +53,9 @@ class SingletonScope extends Scope {
     public resolve(provider: Provider, source: any) {
         let instance: any = SingletonScope.instances.get(source);
         if (!instance) {
-            source['__block_Instantiation'] = false;
+            source[SINGLETON] = false;
             instance = provider.get();
-            source['__block_Instantiation'] = true;
+            source[SINGLETON] = true;
             SingletonScope.instances.set(source, instance);
         }
         return instance;

@@ -1,4 +1,5 @@
-import {InjectParamDecorator, InjectPropertyDecorator} from "../utils/functions";
+import {Container} from "../Container";
+
 /**
  * A decorator to request from Container that it resolve the annotated property dependency.
  * For example:
@@ -26,12 +27,41 @@ import {InjectParamDecorator, InjectPropertyDecorator} from "../utils/functions"
  * console.log('PersonService.personDAO: ' + personService.personDAO);
  * ```
  */
-export function Inject(...args: Array<any>) {
-    if (args.length < 3 || typeof args[2] === 'undefined') {
-        return InjectPropertyDecorator.apply(this, args);
-    } else if (args.length === 3 && typeof args[2] === 'number') {
-        return InjectParamDecorator.apply(this, args);
+export function Inject(target: any, propertyName?: string, index?: number) {
+
+    function annotate(getType: () => any, target: any, propertyName: string, index?: number) {
+        let source: any = undefined;
+        if (typeof index === 'number') {
+            source = () => {
+                const paramTypes: Array<any> = Reflect.getMetadata('design:paramtypes', target);
+                return getType ? getType() : paramTypes[index];
+            };
+        } else {
+            source = () => {
+                let type = getType ? getType() : Reflect.getMetadata('design:type', target, propertyName);
+                if (!type) {
+                    // Needed to support react native inheritance
+                    type = Reflect.getMetadata('design:type', target.constructor, propertyName);
+                }
+                return type;
+            };
+        }
+
+        Container.defineHandler({
+            target: target,
+            propertyName: propertyName,
+            index: index,
+            value: () => {
+                return Container.get(source());
+            }
+        });
     }
 
-    throw new Error('Invalid @Inject Decorator declaration.');
+    if (arguments.length === 1) {
+        return ((t: any, k?: string, d?: number) => {
+            return annotate(target, t, k, d);
+        }) as any;
+    }
+    return annotate(null, target, propertyName, index);
+
 }

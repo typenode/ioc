@@ -425,6 +425,81 @@ MyIoCConfigurations.configure();
 
 ```
 
-## Restrictions
-- Circular injections are not supported
-- You can only inject types that are already defined into your file. It can be solved by a @LazyInject on future releases
+## Circular injections
+
+There is a known issue in language that it can't handle circular references. For example:
+
+```typescript
+// One.ts
+export class One {
+    @Inject two: Two;
+}
+
+// Two.ts
+export class Two {
+    @Inject one: One;
+}
+
+```
+To fix them you need to specify a type in a function this way:
+
+```typescript
+// One.ts
+export class One {
+    @Inject(type => Two) two: Two;
+}
+
+// Two.ts
+export class Two {
+    @Inject(type => One) one: One;
+}
+
+```
+Same for constructor injections.
+
+## Custom decorators
+
+
+You can create your own decorators which will inject your given values for your service dependencies.
+For example:
+
+```typescript
+// Logger.ts
+export function Logger() {
+    return function(target: any, propertyName: string, index?: number) {
+        const logger = new ConsoleLogger();
+        Container.defineHandler({ target, propertyName, index, value: () => logger });
+    };
+}
+
+// LoggerInterface.ts
+export interface LoggerInterface {
+
+    log(message: string): void;
+
+}
+
+// ConsoleLogger.ts
+import {LoggerInterface} from "./LoggerInterface";
+
+export class ConsoleLogger implements LoggerInterface {
+
+    log(message: string) {
+        console.log(message);
+    }
+
+}
+
+// UserRepository.ts
+export class UserRepository {
+
+    constructor(@Logger() private logger: LoggerInterface) {
+    }
+
+    save(user: User) {
+        this.logger.log(`user ${user.firstName} ${user.secondName} has been saved.`);
+    }
+
+}
+```
+

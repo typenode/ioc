@@ -3,6 +3,7 @@ import {InjectorHanlder}  from "./utils/InjectorHanlder";
 import {Scope}            from "./Scope";
 import {IoCContainer}     from "./IoCContainer";
 import {checkType}        from "./utils/functions";
+import {SINGLETON}        from "./constants";
 
 /**
  * A bind configuration for a given type in the IoC Container.
@@ -16,6 +17,7 @@ export class ConfigImpl implements Config {
     public iocscope: Scope;
     public decoratedConstructor: FunctionConstructor;
     public paramTypes: Array<any>;
+    public parameters: Array<any>;
 
     constructor(source: Function) {
         this.source = source;
@@ -29,7 +31,7 @@ export class ConfigImpl implements Config {
             const configImpl = this;
             this.iocprovider = {
                 get: () => {
-                    const params:any = configImpl.getParameters();
+                    const params: any = configImpl.getParameters();
                     if (configImpl.decoratedConstructor) {
                         return (params ? new configImpl.decoratedConstructor(...params) : new configImpl.decoratedConstructor());
                     }
@@ -60,10 +62,10 @@ export class ConfigImpl implements Config {
     public scope(scope: Scope) {
         this.iocscope = scope;
         if (scope === Scope.Singleton) {
-            (this as any).source['__block_Instantiation'] = true;
+            (this as any).source[SINGLETON] = true;
             scope.reset(this.source);
-        } else if ((this as any).source['__block_Instantiation']) {
-            delete (this as any).source['__block_Instantiation'];
+        } else if ((this as any).source[SINGLETON]) {
+            delete (this as any).source[SINGLETON];
         }
         return this;
     }
@@ -86,8 +88,8 @@ export class ConfigImpl implements Config {
     }
 
     private getParameters() {
-        if (this.paramTypes) {
-            return this.paramTypes.map(paramType => IoCContainer.get(paramType));
+        if (this.parameters) {
+            return this.parameters.map(value => value());
         }
         return null;
     }

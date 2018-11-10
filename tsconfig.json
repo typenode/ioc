@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
+        "sourceRoot": "./src/",
+        "rootDir": "./src/",
+        "outFile": "./build/build.js",
         "declaration": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -18,7 +21,7 @@
         "removeComments": true,
         "sourceMap": true,
         "strictNullChecks": false,
-        "target": "es5",
+        "target": "es6",
         "outDir": "lib"
     },
     "include": [
