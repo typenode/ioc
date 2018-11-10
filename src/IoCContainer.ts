@@ -45,19 +45,6 @@ export class IoCContainer {
         return config.targetSource || config.source;
     }
 
-    public static injectProperty<T>(target: Function, key: string, propertyType: Class<T>) {
-        const propKey = `__${key}`;
-        Object.defineProperty(target.prototype, key, {
-            enumerable: true,
-            get: function () {
-                return this[propKey] ? this[propKey] : this[propKey] = IoCContainer.get(propertyType);
-            },
-            set: function (newValue) {
-                this[propKey] = newValue;
-            }
-        });
-    }
-
     public static assertInstantiable(target: any) {
         if (target[SINGLETON]) {
             throw new TypeError('Can not instantiate Singleton class. ' +

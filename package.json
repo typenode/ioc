@@ -1,6 +1,6 @@
 {
   "name": "@typenode/ioc",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A Lightweight annotation-based dependency injection container for typescript.",
   "author": "Armen Harutyunyan <mench.harutyunyan@gmail.com>",
   "scripts": {
@@ -37,7 +37,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/typenode/typescript-ioc.git"
+    "url": "https://github.com/typenode/ioc.git"
   },
   "license": "MIT",
   "bugs": {

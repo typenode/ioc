@@ -1,5 +1,6 @@
 import {IoCContainer} from "../IoCContainer";
 import {Class}        from "../types";
+import {PARENT}       from "../constants";
 
 /**
  * Utility class to handle injection behavior on class decorations.
@@ -16,7 +17,7 @@ export class InjectorHanlder {
                 IoCContainer.assertInstantiable(target);
             }
         };
-        newConstructor['__parent'] = target;
+        newConstructor[PARENT] = target;
         return newConstructor;
     }
 
@@ -40,12 +41,12 @@ export class InjectorHanlder {
         if (this.hasNamedConstructor(typeConstructor)) {
             return typeConstructor as FunctionConstructor;
         }
-        typeConstructor = typeConstructor['__parent'];
+        typeConstructor = typeConstructor[PARENT];
         while (typeConstructor) {
             if (this.hasNamedConstructor(typeConstructor)) {
                 return typeConstructor as FunctionConstructor;
             }
-            typeConstructor = typeConstructor['__parent'];
+            typeConstructor = typeConstructor[PARENT];
         }
         throw TypeError('Can not identify the base Type for requested target ' +  target.toString());
     }
