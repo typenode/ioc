@@ -1,6 +1,6 @@
 {
   "name": "@typenode/ioc",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A Lightweight annotation-based dependency injection container for typescript.",
   "author": "Armen Harutyunyan <mench.harutyunyan@gmail.com>",
   "scripts": {
