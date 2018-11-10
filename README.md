@@ -13,6 +13,8 @@ This is a lightweight annotation-based dependency injection container for typesc
   - [@AutoWired](#the-autowired-annotation)
   - [@The Container Class](#the-container-class)
     - [Registering from multiple files](#registering-from-multiple-files)
+  - [Circular injections](#circular-injections)
+  - [Custom decorators](#custom-decorators)
   - [A note about classes and interfaces](#a-note-about-classes-and-interfaces)
   - [Best practices](#best-practices)
   - [Restrictions](#restrictions)
@@ -330,6 +332,83 @@ If PersonDAOImpl is saved in a file that is not explicitly imported by your code
 
 You can do this through ```Container.bind()```, as previously showed, or you can use the ```ContainerConfig``` class to configure the sources to be included:
 
+## Circular injections
+
+There is a known issue in language that it can't handle circular references. For example:
+
+```typescript
+// One.ts
+export class One {
+    @Inject two: Two;
+}
+
+// Two.ts
+export class Two {
+    @Inject one: One;
+}
+
+```
+To fix them you need to specify a type in a function this way:
+
+```typescript
+// One.ts
+export class One {
+    @Inject(type => Two) two: Two;
+}
+
+// Two.ts
+export class Two {
+    @Inject(type => One) one: One;
+}
+
+```
+Same for constructor injections.
+
+## Custom decorators
+
+
+You can create your own decorators which will inject your given values for your service dependencies.
+For example:
+
+```typescript
+// Logger.ts
+export function Logger() {
+    return function(target: any, propertyName: string, index?: number) {
+        const logger = new ConsoleLogger();
+        Container.defineHandler({ target, propertyName, index, value: () => logger });
+    };
+}
+
+// LoggerInterface.ts
+export interface LoggerInterface {
+
+    log(message: string): void;
+
+}
+
+// ConsoleLogger.ts
+import {LoggerInterface} from "./LoggerInterface";
+
+export class ConsoleLogger implements LoggerInterface {
+
+    log(message: string) {
+        console.log(message);
+    }
+
+}
+
+// UserRepository.ts
+export class UserRepository {
+
+    constructor(@Logger() private logger: LoggerInterface) {
+    }
+
+    save(user: User) {
+        this.logger.log(`user ${user.firstName} ${user.secondName} has been saved.`);
+    }
+
+}
+```
 
 ## A note about classes and interfaces
 
@@ -423,83 +502,5 @@ export default class MyIoCConfigurations {
 // and call..
 MyIoCConfigurations.configure();
 
-```
-
-## Circular injections
-
-There is a known issue in language that it can't handle circular references. For example:
-
-```typescript
-// One.ts
-export class One {
-    @Inject two: Two;
-}
-
-// Two.ts
-export class Two {
-    @Inject one: One;
-}
-
-```
-To fix them you need to specify a type in a function this way:
-
-```typescript
-// One.ts
-export class One {
-    @Inject(type => Two) two: Two;
-}
-
-// Two.ts
-export class Two {
-    @Inject(type => One) one: One;
-}
-
-```
-Same for constructor injections.
-
-## Custom decorators
-
-
-You can create your own decorators which will inject your given values for your service dependencies.
-For example:
-
-```typescript
-// Logger.ts
-export function Logger() {
-    return function(target: any, propertyName: string, index?: number) {
-        const logger = new ConsoleLogger();
-        Container.defineHandler({ target, propertyName, index, value: () => logger });
-    };
-}
-
-// LoggerInterface.ts
-export interface LoggerInterface {
-
-    log(message: string): void;
-
-}
-
-// ConsoleLogger.ts
-import {LoggerInterface} from "./LoggerInterface";
-
-export class ConsoleLogger implements LoggerInterface {
-
-    log(message: string) {
-        console.log(message);
-    }
-
-}
-
-// UserRepository.ts
-export class UserRepository {
-
-    constructor(@Logger() private logger: LoggerInterface) {
-    }
-
-    save(user: User) {
-        this.logger.log(`user ${user.firstName} ${user.secondName} has been saved.`);
-    }
-
-}
 ```
 
